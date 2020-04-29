@@ -1,0 +1,174 @@
+<!--
+ * HNoteBook
+ * 版本: V1.0.0
+-->
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+		<script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+		<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+		<script src="https://unpkg.com/vue/dist/vue.js"></script>
+		<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js" integrity="sha256-6rXZCnFzbyZ685/fMsqoxxZz/QZwMnmwHg+SsNe+C/w="
+		 crossorigin="anonymous"></script>
+
+		<style>
+			@font-face {
+				font-family: FF;
+				src: url(https://cdn.jsdelivr.net/gh/justfont/open-huninn-font@master/font/jf-openhuninn-1.1.ttf);
+			}
+
+			#app {
+				font-family: FF, serif;
+			}
+		</style>
+		<title>Hsuan 私密訊息</title>
+	</head>
+
+	<body>
+		<div id="app">
+			<el-container>
+				<el-header>Hsuan 私密訊息</el-header>
+				<el-main>
+					<el-row>
+						<el-switch v-model="mode" active-text="加密" inactive-text="解密"></el-switch>
+					</el-row>
+					<el-row>
+						<el-input v-model="message" placeholder="欲傳送的訊息" type="textarea"></el-input>
+						<br>
+						<el-input v-model="password" placeholder="金鑰(密碼)" show-password></el-input>
+					</el-row>
+					<br>
+					<el-row>
+						<el-button @click="process()">處理</el-button>
+					</el-row>
+					<br>
+					<el-row>
+						<center>
+							<el-card class="box-card">
+								<div slot="header" class="clearfix">
+									<span>快速預覽:</span>
+								</div>
+								<div>
+									{{finalOutput}}
+								</div>
+							</el-card>
+						</center>
+					</el-row>
+				</el-main>
+			</el-container>
+
+		</div>
+	</body>
+
+	<script>
+		var MessageApp = new Vue({
+			el: '#app',
+			data: function() {
+
+				return {
+					message: "",
+					password: "",
+					output: "",
+					mode: true
+				}
+			},
+			methods: {
+				process() {
+					if (this.mode) {
+						this.encrypt()
+					} else {
+						this.decrypt()
+					}
+				},
+				encrypt() {
+					var encrypted = CryptoJS.AES.encrypt(this.message, CryptoJS.SHA256(this.password).toString()).toString()
+					this.$alert("按OK複製: " + encrypted, '完成', {
+						confirmButtonText: 'OK',
+						callback: () => {
+							let x = document.createElement("input")
+							x.setAttribute("value", encrypted)
+							document.body.appendChild(x)
+							x.select()
+							document.execCommand("copy")
+							document.body.removeChild(x)
+							this.$message("複製完成")
+						}
+					});
+				},
+				decrypt() {
+					var decrypted = "",
+						success = 1
+					try {
+						decrypted = CryptoJS.AES.decrypt(this.message, CryptoJS.SHA256(this.password).toString()).toString(CryptoJS.enc
+							.Utf8)
+					} catch (e) {
+						success = 0
+					}
+					if (success) {
+						this.$alert("按OK複製: " + decrypted, '完成', {
+							confirmButtonText: 'OK',
+							callback: () => {
+								let x = document.createElement("input")
+								x.setAttribute("value", decrypted)
+								document.body.appendChild(x)
+								x.select()
+								document.execCommand("copy")
+								document.body.removeChild(x)
+								this.$message("複製完成")
+							}
+						});
+					} else {
+						this.$alert("Q_Q 密碼錯誤喔!", '失敗', {
+							confirmButtonText: 'OK'
+						});
+					}
+
+				}
+			},
+			computed: {
+				finalOutput() {
+					if (this.mode) {
+						//加密
+						return CryptoJS.AES.encrypt(this.message, CryptoJS.SHA256(this.password).toString()).toString()
+					} else {
+						//解密
+						let m = ""
+						try {
+							m = CryptoJS.AES.decrypt(this.message, CryptoJS.SHA256(this.password).toString()).toString(CryptoJS.enc.Utf8)
+						} catch (e) {
+							m = "Something wrong!!"
+						}
+						return m
+					}
+				}
+			}
+		})
+	</script>
+	<style>
+		.el-header,
+		.el-footer {
+			background-color: #B3C0D1;
+			color: #333;
+			text-align: center;
+			line-height: 60px;
+		}
+
+		.el-main {
+			background-color: #E9EEF3;
+			color: #333;
+			text-align: center;
+			line-height: 20px;
+		}
+
+		.el-picker-panel .el-date-picker {
+			top: 5px !important;
+		}
+
+		.box-card {
+			width: 480px;
+		}
+	</style>
+
+</html>
